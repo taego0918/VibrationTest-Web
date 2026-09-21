@@ -16,9 +16,68 @@
         justify-content: center;
         align-items: center;
       }
+
+      /* === 自訂 Loading 畫面樣式 === */
+      #loading-screen {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: #0f172a; /* 深藍色質感背景 */
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        z-index: 9999;
+        transition: opacity 0.5s ease; /* 淡出效果 */
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      }
+
+      #loading-title {
+        color: #f8fafc;
+        font-size: 20px;
+        font-weight: 600;
+        margin-bottom: 20px;
+        letter-spacing: 1px;
+      }
+
+      #progress-bar-bg {
+        width: 260px;
+        height: 8px;
+        background-color: #334155;
+        border-radius: 4px;
+        overflow: hidden;
+        box-shadow: inset 0 1px 2px rgba(0,0,0,0.3);
+      }
+
+      #progress-bar-fill {
+        width: 0%;
+        height: 100%;
+        background: linear-gradient(90deg, #38bdf8, #818cf8); /* 漸層科技感 */
+        border-radius: 4px;
+        transition: width 0.15s ease-out;
+      }
+
+      #loading-text {
+        color: #94a3b8;
+        font-size: 14px;
+        margin-top: 12px;
+        font-variant-numeric: tabular-nums;
+      }
     </style>
   </head>
   <body style="text-align: center; padding: 0; border: 0; margin: 0;">
+    
+    <!-- Loading 畫面 HTML 結構 -->
+    <div id="loading-screen">
+      <div id="loading-title">LOADING...</div>
+      <div id="progress-bar-bg">
+        <div id="progress-bar-fill"></div>
+      </div>
+      <div id="loading-text">0%</div>
+    </div>
+
     <canvas id="unity-canvas" width=720 height=1280 tabindex="-1" style="width: 720px; height: 1280px; background: #231F20"></canvas>
     <script src="Build/Web.loader.js"></script>
     <script>
@@ -73,6 +132,11 @@
       });
       checkOrientation();
 
+      // Loading 畫面控制變數
+      const loadingScreen = document.getElementById('loading-screen');
+      const progressBarFill = document.getElementById('progress-bar-fill');
+      const loadingText = document.getElementById('loading-text');
+
       createUnityInstance(document.querySelector("#unity-canvas"), {
         arguments: [],
         dataUrl: "Build/Web.data.unityweb",
@@ -84,7 +148,18 @@
         productVersion: "1.0",
         // matchWebGLToCanvasSize: false, // Uncomment this to separately control WebGL canvas render size and DOM element size.
         // devicePixelRatio: 1, // Uncomment this to override low DPI rendering on high DPI displays.
+      }, (progress) => {
+        // 即時更新下載進度 (0.0 ~ 1.0)
+        const percent = Math.round(progress * 100);
+        progressBarFill.style.width = percent + "%";
+        loadingText.innerText = percent + "%";
       }).then((unityInstance) => {
+        // 載入完成，淡出隱藏 Loading 畫面
+        loadingScreen.style.opacity = "0";
+        setTimeout(() => {
+          loadingScreen.style.display = "none";
+        }, 500); // 配合 CSS transition 0.5s 淡出
+
       }).catch((message) => {
         alert(message);
       });
